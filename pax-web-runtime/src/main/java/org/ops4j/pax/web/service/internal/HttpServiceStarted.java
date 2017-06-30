@@ -323,7 +323,13 @@ class HttpServiceStarted implements StoppableHttpService {
 
 	@Override
 	public WebContainerContext createDefaultHttpContext() {
-		return new DefaultHttpContext(serviceBundle, WebContainerContext.DefaultContextIds.DEFAULT.getValue());
+		if (serverController.getConfiguration().isUseSharedHttpContextByDefault()) {
+			LOG.info("createDefaultHttpContext returns SharedContext");
+			return createDefaultSharedHttpContext();
+		} else {
+			LOG.info("createDefaultHttpContext returns HttpContext for bundle {}", serviceBundle.getBundleId());
+			return createDefaultHttpContext(WebContainerContext.DefaultContextIds.DEFAULT.getValue());
+		}	
 	}
 
 	@Override
@@ -495,7 +501,7 @@ class HttpServiceStarted implements StoppableHttpService {
 	public void registerEventListener(final EventListener listener,
 									  final HttpContext httpContext) {
 		final ContextModel contextModel = getOrCreateContext(httpContext);
-		LOG.debug("Register event listener (listener={}). Using context [{}]", listener, contextModel);
+		LOG.info("Register event listener (listener={}). Using context [{}]", listener, contextModel);
 		final EventListenerModel model = new EventListenerModel(contextModel,
 				listener);
 		boolean serviceSuccess = false;
@@ -1158,13 +1164,15 @@ class HttpServiceStarted implements StoppableHttpService {
 			context = (WebContainerContext) httpContext;
 		}
 		serverModel.associateHttpContext(context, serviceBundle,
-				httpContext instanceof SharedWebContainerContext);
+				context instanceof SharedWebContainerContext);
 		ContextModel contextModel = serviceModel.getContextModel(context);
 		if (contextModel == null) {
+			LOG.info("Create new ContextModel for context={} and bundle={}", context, serviceBundle);
 			contextModel = new ContextModel(context, serviceBundle,
 					bundleClassLoader);
 			contextModel.setVirtualHosts(serverController.getConfiguration()
 					.getVirtualHosts());
+			serviceModel.addContextModel(contextModel);
 		}
 		return contextModel;
 	}
