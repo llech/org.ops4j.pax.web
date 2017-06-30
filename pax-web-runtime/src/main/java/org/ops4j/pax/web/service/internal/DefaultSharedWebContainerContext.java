@@ -116,4 +116,29 @@ public class DefaultSharedWebContainerContext implements
 		return true;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((contextId == null) ? 0 : contextId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DefaultSharedWebContainerContext other = (DefaultSharedWebContainerContext) obj;
+		if (contextId == null) {
+			if (other.contextId != null)
+				return false;
+		} else if (!contextId.equals(other.contextId))
+			return false;
+		return true;
+	}
+
 }
